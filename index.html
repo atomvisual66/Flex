@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#020617">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="icon_flex.png">
+
+    <title>FLEX | ULTIMATE</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#020617',
+                        neon: { 
+                            purple: '#a855f7',
+                            pink: '#ec4899',
+                            indigo: '#6366f1',
+                            cyan: '#06b6d4'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        tech: ['Chakra Petch', 'monospace'],
+                        logo: ['Russo One', 'sans-serif']
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 6s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 8s ease-in-out infinite',
+                        'shine': 'shine 3s infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        shine: {
+                            '0%': { transform: 'translateX(-100%)' },
+                            '100%': { transform: 'translateX(100%)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Russo+One&family=Chakra+Petch:ital,wght@0,300;0,400;0,500;0,600;0,700;1,700&family=Inter:wght@300;400;600;800&display=swap');
+        
+        body { background-color: #020617; color: #e2e8f0; -webkit-tap-highlight-color: transparent; user-select: none; overflow: hidden; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .pt-safe { padding-top: env(safe-area-inset-top); }
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+        [x-cloak] { display: none !important; }
+
+        /* UI STYLES */
+        .bg-noise {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+        
+        /* Glassmorphism Avancé */
+        .glass-card {
+            background: rgba(19, 15, 35, 0.65); 
+            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.08); 
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+        }
+        
+        .glass-heavy { 
+            background: rgba(5, 2, 12, 0.96); 
+            backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); 
+            border: 1px solid rgba(255,255,255,0.1); 
+        }
+        
+        .nav-glass {
+            background: rgba(15, 10, 30, 0.85); 
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            box-shadow: 0 15px 40px -10px rgba(0,0,0,0.8);
+        }
+
+        /* Titre Métallique Lumineux */
+        .text-flex-title {
+            background: linear-gradient(180deg, #ffffff 10%, #d8b4fe 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 25px rgba(168, 85, 247, 0.5));
+        }
+        
+        /* Transitions */
+        .modal-enter { transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1); }
+        .modal-enter-start { opacity: 0; transform: scale(0.96) translateY(15px); }
+        .modal-enter-end { opacity: 1; transform: scale(1) translateY(0); }
+    </style>
+</head>
+
+<body x-data="flexApp()" x-init="init()" class="h-[100dvh] flex flex-col relative overflow-hidden font-sans">
+
+    <div class="bg-noise"></div>
+
+    <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        <div class="absolute top-[0%] left-[-20%] w-[700px] h-[700px] bg-purple-600/10 rounded-full blur-[130px] animate-pulse-slow"></div>
+        <div class="absolute bottom-[-10%] right-[-20%] w-[600px] h-[600px] bg-pink-600/5 rounded-full blur-[100px] animate-float"></div>
+    </div>
+
+    <header class="fixed top-0 left-0 right-0 z-50 pt-safe transition-all duration-300">
+        <div class="absolute inset-0 bg-gradient-to-b from-[#020617] via-[#020617]/90 to-transparent h-32 backdrop-blur-[2px] pointer-events-none"></div>
+        
+        <div class="relative px-6 pt-2 pb-6 flex items-center justify-between">
+            
+            <div class="flex flex-col justify-center w-24 pt-2">
+                 <div class="flex items-center gap-1.5 opacity-90">
+                    <div class="w-1.5 h-1.5 rounded-full bg-purple-400 shadow-[0_0_10px_rgba(168,85,247,1)] animate-pulse"></div>
+                    <span class="text-[9px] font-bold text-purple-300 font-tech uppercase tracking-[0.2em]">Mobilité</span>
+                 </div>
+                 <span class="text-xs text-white font-bold tracking-wider font-tech mt-0.5" x-text="currentPhaseName">PHASE 1</span>
+            </div>
+
+            <div class="absolute left-1/2 -translate-x-1/2 top-3 text-center group cursor-pointer" @click="toggleSecret()">
+                <h1 class="text-6xl font-logo italic tracking-tighter text-flex-title transform -skew-x-6 scale-y-110 group-hover:scale-110 transition-transform duration-500">
+                    FLEX
+                </h1>
+                <div class="text-[9px] font-bold text-purple-400/70 tracking-[0.6em] uppercase mt-1 ml-1 font-tech">Kinetic System</div>
+            </div>
+
+            <div class="flex flex-col items-end justify-center w-24 pt-2">
+                <div class="flex items-center gap-1 mb-1.5 opacity-90">
+                    <i data-lucide="layers" class="w-3 h-3 text-purple-400"></i>
+                    <span class="text-[9px] text-slate-400 font-bold font-tech uppercase tracking-widest">Cycle</span>
+                </div>
+                <div class="text-xs text-white font-bold tracking-wider font-tech bg-white/5 px-2 py-0.5 rounded border border-white/10">S<span x-text="currentWeek"></span></div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 overflow-y-auto hide-scrollbar p-5 pt-36 pb-36 z-10 space-y-10">
+
+        <div x-show="tab === 'home'" x-transition.opacity class="space-y-8">
+            
+            <div class="glass-card rounded-[36px] p-1 relative overflow-hidden group shadow-2xl animate-float border border-purple-500/30">
+                <div class="bg-[#0f172a]/50 rounded-[32px] p-6 relative overflow-hidden h-full">
+                    
+                    <div class="absolute left-0 top-10 bottom-10 w-1.5 rounded-r-full transition-colors duration-500" 
+                         :class="todaySession.done ? 'bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.8)]' : 'bg-purple-600 shadow-[0_0_20px_rgba(168,85,247,0.8)]'"></div>
+
+                    <div class="absolute -right-8 -top-8 text-white opacity-[0.04] transition duration-700 transform rotate-12 scale-150 group-hover:rotate-0 group-hover:scale-125">
+                        <i data-lucide="zap" class="w-56 h-56"></i>
+                    </div>
+
+                    <div class="relative z-10">
+                        <div class="flex justify-between items-start mb-5 pl-5">
+                            <span class="inline-block px-2.5 py-1 rounded-md bg-purple-500/10 border border-purple-500/20 text-[9px] font-bold text-purple-200 font-tech uppercase tracking-[0.2em] backdrop-blur-sm shadow-[0_0_15px_rgba(168,85,247,0.1)]" x-text="'FOCUS: ' + todaySession.focus"></span>
+                            <div class="text-right">
+                                <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] font-tech" x-text="todaySession.day">LUNDI</span>
+                            </div>
+                        </div>
+
+                        <div class="pl-5 mb-6">
+                            <h2 class="text-4xl font-logo text-white leading-none uppercase italic tracking-wide drop-shadow-xl mb-3" x-text="todaySession.title"></h2>
+                            <p class="text-xs text-slate-300 leading-relaxed font-medium opacity-80 mb-5 max-w-[90%]" x-text="todaySession.desc"></p>
+                            
+                            <div class="grid grid-cols-3 gap-3 mb-6">
+                                <div class="bg-slate-900/60 p-2.5 rounded-2xl border border-white/5 text-center shadow-inner">
+                                    <div class="text-[8px] text-slate-500 uppercase font-bold tracking-wider mb-0.5">Durée</div>
+                                    <div class="text-sm font-bold text-white font-mono" x-text="calculateTotalDuration(todaySession) + ' min'"></div>
+                                </div>
+                                <div class="bg-slate-900/60 p-2.5 rounded-2xl border border-white/5 text-center shadow-inner">
+                                    <div class="text-[8px] text-slate-500 uppercase font-bold tracking-wider mb-0.5">Blocs</div>
+                                    <div class="text-sm font-bold text-purple-400 font-mono" x-text="todaySession.exercises.length"></div>
+                                </div>
+                                <div class="bg-slate-900/60 p-2.5 rounded-2xl border border-white/5 text-center relative overflow-hidden shadow-inner">
+                                    <div class="absolute inset-0 bg-pink-500/5"></div>
+                                    <div class="text-[8px] text-slate-500 uppercase font-bold tracking-wider mb-0.5">Intensité</div>
+                                    <div class="text-sm font-bold text-pink-400 font-mono" x-text="todaySession.intensity + '/10'"></div>
+                                </div>
+                           </div>
+                        </div>
+
+                        <div class="space-y-2.5 mb-8 pl-5 pr-1">
+                            <template x-for="(exo, index) in todaySession.exercises" :key="index">
+                                <div class="bg-white/5 border border-white/10 rounded-xl p-3.5 relative group hover:bg-white/10 transition flex gap-4 items-center">
+                                    <div class="text-[10px] font-bold text-purple-500/40 font-mono" x-text="(index + 1) < 10 ? '0' + (index + 1) : (index + 1)"></div>
+                                    
+                                    <div class="flex-1">
+                                        <div class="flex justify-between items-center mb-1">
+                                            <h4 class="text-xs font-bold text-white font-tech uppercase tracking-wide" x-text="exo.name"></h4>
+                                            <span class="text-[9px] bg-slate-900/80 text-purple-200 px-2 py-0.5 rounded-md border border-white/10 font-mono font-bold whitespace-nowrap ml-2 shadow-sm" x-text="exo.time"></span>
+                                        </div>
+                                        <p class="text-[10px] text-slate-400 leading-snug font-medium opacity-70" x-text="exo.tip"></p>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+
+                        <button @click="toggleSession(todaySession.id)" 
+                            class="w-full py-5 rounded-2xl font-logo text-sm uppercase tracking-[0.2em] transition-all active:scale-[0.98] shadow-2xl flex items-center justify-center gap-3 border relative overflow-hidden group"
+                            :class="todaySession.done 
+                                ? 'bg-red-900/20 border-red-500/30 text-red-400 hover:bg-red-900/30' 
+                                : 'bg-gradient-to-r from-purple-700 to-indigo-700 border-purple-400/30 text-white shadow-purple-900/50 hover:shadow-purple-600/30'">
+                            
+                            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-shine"></div>
+                            
+                            <i :data-lucide="todaySession.done ? 'x' : 'check'" class="w-4 h-4 relative z-10"></i>
+                            <span class="relative z-10" x-text="todaySession.done ? 'Annuler' : 'Valider la Séance'"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card p-6 rounded-[32px] relative overflow-hidden group hover:border-purple-500/30 transition duration-500">
+                <div class="absolute top-0 right-0 w-40 h-40 bg-purple-600/10 rounded-full blur-[60px] -mr-10 -mt-10 group-hover:bg-purple-600/20 transition"></div>
+                <div class="flex items-center gap-4 mb-4 relative z-10">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500/20 to-indigo-500/5 border border-purple-500/20 flex items-center justify-center text-purple-400 shadow-[0_0_20px_rgba(168,85,247,0.15)]">
+                        <i data-lucide="dna" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <div class="text-[9px] font-bold text-purple-400/70 uppercase tracking-[0.2em] font-tech">Savoir</div>
+                        <h3 class="font-bold text-white text-lg font-logo tracking-wide italic">Loi du Fluage</h3>
+                    </div>
+                </div>
+                <div class="pl-1 border-l-2 border-purple-500/20 ml-2">
+                    <p class="text-xs text-slate-300 leading-relaxed text-justify pl-5 font-medium opacity-90">
+                        Pour qu'un changement soit structurel (et non temporaire), il faut appliquer le principe de <span class="text-purple-300 font-bold">Fluage (Creep)</span> : une tension faible mais maintenue longtemps (> 2 min) pour réorganiser les fibres de collagène. C'est l'objectif des protocoles d'aujourd'hui.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="h-8"></div>
+        </div>
+
+        <div x-show="tab === 'plan'" x-cloak x-transition.opacity class="space-y-6">
+            <div class="flex justify-between items-center px-2 py-1">
+                <h2 class="text-lg font-logo text-white tracking-widest uppercase">Planning <span class="text-purple-500">S<span x-text="viewWeek"></span></span></h2>
+                <div class="flex gap-2">
+                    <button @click="changeWeek(-1)" class="w-10 h-10 flex items-center justify-center bg-slate-900 border border-white/10 rounded-xl text-slate-400 hover:text-white transition"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
+                    <button @click="changeWeek(1)" class="w-10 h-10 flex items-center justify-center bg-slate-900 border border-white/10 rounded-xl text-slate-400 hover:text-white transition"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
+                </div>
+            </div>
+
+            <div class="space-y-3">
+                <template x-for="s in getWeekSessions(viewWeek)" :key="s.id">
+                    <div @click="openRoutine(s)" class="glass-card p-5 rounded-3xl relative overflow-hidden transition group cursor-pointer active:scale-[0.98] hover:border-purple-500/30"
+                         :class="s.done ? 'border-emerald-500/40 bg-emerald-900/10' : ''">
+                        <div class="flex justify-between items-center relative z-10">
+                            <div class="flex items-center gap-5">
+                                <div class="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-[10px] uppercase font-tech border shadow-lg transition-colors" 
+                                     :class="s.done ? 'bg-emerald-500 text-white border-emerald-400' : 'bg-slate-900 text-slate-500 border-white/10'">
+                                    <span x-text="s.day.substring(0,3)"></span>
+                                </div>
+                                <div>
+                                    <h3 class="text-sm font-bold text-white uppercase font-tech tracking-wide group-hover:text-purple-400 transition" x-text="s.title"></h3>
+                                    <div class="text-[9px] text-slate-500 font-mono mt-1.5 flex gap-3">
+                                        <span class="flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i> <span x-text="calculateTotalDuration(s)"></span> min</span>
+                                        <span class="text-slate-700">|</span>
+                                        <span class="flex items-center gap-1"><i data-lucide="list" class="w-3 h-3"></i> <span x-text="s.exercises.length + ' Exos'"></span></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-purple-500 group-hover:text-white transition">
+                                <i :data-lucide="s.done ? 'check' : 'chevron-right'" class="w-4 h-4"></i>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <div x-show="tab === 'science'" x-cloak x-transition.opacity class="space-y-6">
+            <div class="flex flex-col gap-1 mb-6 px-1">
+                <h2 class="text-3xl font-logo text-white italic tracking-wide">Bibliothèque</h2>
+                <p class="text-xs text-slate-400 font-tech uppercase tracking-widest">Physiologie de la souplesse</p>
+            </div>
+
+            <div class="grid gap-4">
+                <template x-for="item in scienceDb" :key="item.title">
+                    <div @click="openScience(item)" class="glass-card p-5 rounded-3xl relative overflow-hidden group hover:border-purple-500/40 transition duration-300 cursor-pointer active:scale-[0.98]">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-5">
+                                <div class="w-14 h-14 rounded-2xl bg-[#0f172a] border border-white/10 flex items-center justify-center text-purple-400 group-hover:text-white group-hover:bg-purple-600 transition-all duration-300 shadow-xl" x-html="item.icon"></div>
+                                <div>
+                                    <div class="text-[9px] font-bold text-slate-500 uppercase tracking-[0.15em] mb-1.5 font-tech" x-text="item.category"></div>
+                                    <h3 class="font-bold text-white text-sm leading-tight group-hover:text-purple-200 transition font-logo tracking-wide" x-text="item.title"></h3>
+                                </div>
+                            </div>
+                            <div class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-purple-500 group-hover:text-white transition"><i data-lucide="chevron-right" class="w-4 h-4"></i></div>
+                        </div>
+                        <div class="mt-5 pt-3 border-t border-white/5 flex items-center gap-2">
+                             <div class="p-1 rounded bg-emerald-500/10 text-emerald-400"><i data-lucide="zap" class="w-3 h-3"></i></div>
+                             <span class="text-[9px] font-bold text-emerald-400 uppercase tracking-wider font-tech" x-text="item.impact"></span>
+                        </div>
+                    </div>
+                </template>
+            </div>
+            <div class="h-8"></div>
+        </div>
+
+        <div x-show="tab === 'settings'" x-cloak x-transition.opacity class="space-y-6">
+            <h2 class="text-3xl font-logo text-white italic">Système</h2>
+            <div class="glass-card p-8 rounded-[32px] text-center">
+                <div class="bg-slate-900/50 p-6 rounded-2xl border border-white/5 text-left mb-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-xs text-slate-300 font-bold uppercase tracking-widest">Niveau Mobilité</span>
+                        <span class="text-xs text-purple-400 font-mono font-bold" x-text="user.flexRank"></span>
+                    </div>
+                    <div class="w-full h-3 bg-slate-800 rounded-full overflow-hidden mb-2">
+                        <div class="h-full bg-gradient-to-r from-purple-500 to-pink-500" :style="`width: ${Math.min((streak * 2), 100)}%`"></div>
+                    </div>
+                    <p class="text-[9px] text-slate-500">Mode "Athlète" Activé (5 Ans Post-Op)</p>
+                </div>
+                <button @click="resetData()" class="w-full py-5 text-red-400/60 text-xs border border-red-900/20 rounded-2xl bg-red-900/5 font-bold uppercase hover:bg-red-900/20 tracking-[0.2em] transition">Réinitialiser Tout</button>
+            </div>
+        </div>
+
+    </main>
+
+    <nav class="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 w-auto max-w-sm">
+        <div class="nav-glass rounded-full p-2 flex items-center gap-2">
+            <button @click="tab = 'home'" class="nav-btn group" :class="tab === 'home' ? 'active' : ''"><div class="icon-container"><i data-lucide="feather" class="w-5 h-5 group-hover:scale-110 transition"></i></div></button>
+            <button @click="tab = 'plan'" class="nav-btn group" :class="tab === 'plan' ? 'active' : ''"><div class="icon-container"><i data-lucide="calendar" class="w-5 h-5 group-hover:scale-110 transition"></i></div></button>
+            <button @click="tab = 'science'" class="nav-btn group" :class="tab === 'science' ? 'active' : ''"><div class="icon-container"><i data-lucide="brain-circuit" class="w-5 h-5 group-hover:scale-110 transition"></i></div></button>
+            <button @click="tab = 'settings'" class="nav-btn group" :class="tab === 'settings' ? 'active' : ''"><div class="icon-container"><i data-lucide="user" class="w-5 h-5 group-hover:scale-110 transition"></i></div></button>
+        </div>
+    </nav>
+
+    <div x-show="activeRoutine" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md" x-transition:enter="modal-enter" x-transition:enter-start="modal-enter-start" x-transition:enter-end="modal-enter-end" x-cloak>
+        <div class="glass-heavy w-full max-w-md rounded-[40px] p-0 relative shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+            
+            <div class="bg-gradient-to-br from-slate-900 to-black p-6 pb-6 border-b border-white/5 relative">
+                <button @click="activeRoutine = null" class="absolute top-5 right-5 p-2 bg-white/5 rounded-full text-white/50 hover:text-white z-20 hover:bg-white/10 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+                <div class="text-[10px] font-bold text-purple-500 uppercase tracking-[0.2em] mb-1 font-tech" x-text="activeRoutine?.day"></div>
+                <h3 class="text-2xl font-logo text-white leading-none italic pr-10" x-text="activeRoutine?.title"></h3>
+                <div class="mt-4 flex flex-wrap gap-2">
+                    <span class="px-2.5 py-1 bg-slate-800 rounded-md border border-white/10 text-[9px] text-slate-300 font-bold uppercase" x-text="calculateTotalDuration(activeRoutine) + ' min'"></span>
+                    <span class="px-2.5 py-1 bg-slate-800 rounded-md border border-white/10 text-[9px] text-slate-300 font-bold uppercase" x-text="activeRoutine?.exercises.length + ' Exos'"></span>
+                </div>
+            </div>
+
+            <div class="overflow-y-auto p-5 space-y-3 custom-scrollbar bg-[#020617]/80 flex-1">
+                <div class="bg-purple-900/10 p-3 rounded-xl border border-purple-500/20 mb-2">
+                    <p class="text-[10px] text-purple-300 leading-relaxed font-bold text-center uppercase tracking-wide"><i data-lucide="target" class="w-3 h-3 inline mr-1"></i>Objectif : <span x-text="activeRoutine?.focus"></span></p>
+                </div>
+
+                <template x-for="(exo, index) in activeRoutine?.exercises" :key="index">
+                    <div class="glass-card p-4 rounded-2xl border border-white/5 relative group">
+                        <div class="absolute -left-[1px] top-4 bottom-4 w-1 bg-gradient-to-b from-purple-500 to-pink-500 rounded-r-full opacity-80"></div>
+                        <div class="pl-3">
+                            <div class="flex justify-between items-start mb-1">
+                                <h4 class="text-sm font-bold text-white font-tech uppercase" x-text="exo.name"></h4>
+                                <span class="text-[9px] bg-slate-800 text-purple-200 px-2 py-0.5 rounded border border-white/10 font-mono font-bold whitespace-nowrap" x-text="exo.time"></span>
+                            </div>
+                            <p class="text-xs text-slate-400 leading-relaxed font-medium mt-1" x-text="exo.tip"></p>
+                        </div>
+                    </div>
+                </template>
+                <div class="h-4"></div>
+            </div>
+            
+            <div class="p-4 bg-black/40 border-t border-white/5">
+                <button @click="toggleSession(activeRoutine.id); activeRoutine = null" 
+                    class="w-full py-4 rounded-xl font-logo text-sm uppercase tracking-[0.15em] transition-all active:scale-[0.98] flex items-center justify-center gap-2 border"
+                    :class="isDone(activeRoutine?.id) ? 'bg-red-900/20 border-red-500/30 text-red-400' : 'bg-purple-600 border-purple-400/30 text-white shadow-lg shadow-purple-900/40'">
+                    <span x-text="isDone(activeRoutine?.id) ? 'Annuler la séance' : 'Valider la séance'"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div x-show="activeScienceItem" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md" x-transition:enter="modal-enter" x-transition:enter-start="modal-enter-start" x-transition:enter-end="modal-enter-end" x-cloak>
+        <div class="glass-heavy w-full max-w-sm rounded-[40px] p-0 relative shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+            <div class="bg-gradient-to-br from-slate-900 to-black p-8 pb-10 flex flex-col items-center justify-center relative border-b border-white/5">
+                <button @click="activeScienceItem = null" class="absolute top-5 right-5 p-2 bg-white/5 rounded-full text-white/50 hover:text-white z-20 hover:bg-white/10 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+                <div class="w-24 h-24 rounded-3xl bg-[#0f172a] border border-white/10 flex items-center justify-center text-purple-400 mb-6 shadow-[0_0_50px_rgba(168,85,247,0.2)]">
+                    <div class="scale-[1.8]" x-html="activeScienceItem?.icon"></div>
+                </div>
+                <div class="text-[10px] font-bold text-purple-500 uppercase tracking-[0.3em] mb-2 font-tech" x-text="activeScienceItem?.category"></div>
+                <h3 class="text-2xl font-logo text-white leading-tight italic text-center px-4" x-text="activeScienceItem?.title"></h3>
+            </div>
+            <div class="overflow-y-auto p-6 space-y-6 custom-scrollbar bg-[#020617]/50">
+                <div>
+                    <h4 class="text-[10px] font-bold text-slate-500 uppercase mb-3 tracking-widest font-tech">Théorie</h4>
+                    <p class="text-sm text-slate-200 leading-relaxed text-justify font-medium opacity-90" x-text="activeScienceItem?.text"></p>
+                </div>
+                <div class="bg-black/40 rounded-3xl p-5 border border-white/5 relative">
+                    <div class="absolute left-[29px] top-6 bottom-6 w-0.5 bg-gradient-to-b from-red-500/30 via-slate-700 to-emerald-500/30"></div>
+                    <div class="flex gap-5 mb-6 relative z-10">
+                        <div class="w-7 h-7 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center shrink-0"><div class="w-2 h-2 bg-red-500 rounded-full"></div></div>
+                        <div><div class="text-[9px] font-bold text-red-400/80 uppercase tracking-wide mb-1 font-tech">Problème</div><div class="text-xs text-slate-400 font-medium leading-snug" x-text="activeScienceItem?.before"></div></div>
+                    </div>
+                    <div class="flex gap-5 relative z-10">
+                        <div class="w-7 h-7 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center shrink-0"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i></div>
+                        <div><div class="text-[9px] font-bold text-emerald-400/80 uppercase tracking-wide mb-1 font-tech">Solution</div><div class="text-xs text-white font-bold leading-snug" x-text="activeScienceItem?.after"></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .nav-btn { width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: #64748b; transition: all 0.3s; }
+        .nav-btn.active { color: white; }
+        .nav-btn.active .icon-container { background: linear-gradient(135deg, #a855f7, #ec4899); box-shadow: 0 0 20px rgba(168,85,247,0.6); transform: scale(1.1); border: 1px solid rgba(255,255,255,0.2); }
+        .icon-container { width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.3s; }
+    </style>
+
+    <script>
+        function flexApp() {
+            return {
+                tab: 'home',
+                user: { flexRank: "RAIDE" },
+                currentWeek: 1,
+                viewWeek: 1,
+                streak: 0,
+                completed: [],
+                program: [],
+                todaySession: {},
+                activeRoutine: null,
+                activeScienceItem: null,
+
+                scienceDb: [
+                    { title: "Réflexe Myotatique", category: "Neurologie", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>`, text: "C'est le 'frein d'urgence' du muscle. Quand tu tires dessus, il se contracte par sécurité. Pour gagner en souplesse, il faut maintenir la position assez longtemps (>30s) pour que ce réflexe se fatigue et 'lâche' prise.", before: "Le muscle tremble et résiste.", after: "Relâchement soudain, gain d'amplitude.", impact: "Gain immédiat" },
+                    { title: "Organes de Golgi (GTO)", category: "Inhibition", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`, text: "Situés dans les tendons, ils détectent la tension. Si la tension est forte mais stable (stretching chargé), ils ordonnent au muscle de se détendre pour protéger le tendon. C'est l'inverse du réflexe myotatique.", before: "Tension excessive.", after: "Inhibition autogène (détente forcée).", impact: "Souplesse Réelle" },
+                    { title: "Fluage (Creep)", category: "Fascias", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>`, text: "Les fascias sont visco-élastiques. Comme du plastique dur, si tu tires vite, ils cassent. Si tu tires lentement et longtemps, ils se déforment définitivement. C'est le secret pour changer ta structure corporelle.", before: "Tissus raides et secs.", after: "Tissus hydratés et allongés.", impact: "Changement Durable" },
+                    { title: "Tenségrité", category: "Structure", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>`, text: "Ton corps est un système de câbles (muscles/fascias) et de poutres (os) en tension continue. Si tu relâches une tension dans le mollet, tu peux gagner en souplesse dans le cou. Tout est connecté.", before: "Blocages inexpliqués.", after: "Fluidité globale.", impact: "Connexion Totale" }
+                ],
+
+                phasesDb: { 1: { title: "PHASE 1 : DÉVERROUILLAGE", desc: "Objectif : Réveiller les tissus profonds. On travaille sur le temps de maintien pour passer la barrière nerveuse." }, 2: { title: "PHASE 2 : EXTENSION", desc: "Objectif : Étirements chargés. On utilise le poids du corps pour forcer l'amplitude." }, 3: { title: "PHASE 3 : LIBERTÉ", desc: "Objectif : Mobilité active. Contrôle moteur en fin d'amplitude." } },
+
+                // PROTOCOLES COMPLETS (20-30 MIN)
+                exercisesDb: {
+                    // PHASE 1
+                    'p1_lundi': [
+                        { name: "Respiration Diaphragme (Prep)", time: "2 min", tip: "Mains sur le ventre. Calme le système nerveux." },
+                        { name: "Rotations Hanches", time: "20 reps", tip: "Couché sur le dos, grands cercles avec les genoux." },
+                        { name: "Couch Stretch (Mur)", time: "3 min / côté", tip: "Le boss final des fléchisseurs. Genou au mur. Respire." },
+                        { name: "Pigeon Pose (Table)", time: "3 min / côté", tip: "Jambe sur table haute. Dos droit. Relâche la fesse." },
+                        { name: "Fente Basse Dynamique", time: "1 min / côté", tip: "Avance/Recule le bassin. Cherche l'amplitude." },
+                        { name: "Papillon Lesté (Poids)", time: "3 min", tip: "Assis, poids sur les genoux. Laisse faire la gravité." },
+                        { name: "90/90 Switch", time: "15 reps", tip: "Bascule les genoux de droite à gauche. Sans les mains." }
+                    ],
+                    'p1_mardi': [
+                        { name: "Neck Circles (Prep)", time: "1 min", tip: "Doucement. Pas de douleur." },
+                        { name: "Scapula Retractions", time: "20 reps", tip: "Debout, serre les omoplates l'une contre l'autre." },
+                        { name: "Extension Thoracique", time: "3 min", tip: "Dos sur rouleau. Bras en croix. Ouvre la cage." },
+                        { name: "T-Spine Rotation", time: "15 reps / côté", tip: "À 4 pattes, main nuque, ouvre le coude vers le ciel." },
+                        { name: "Cat-Cow (Segmenté)", time: "2 min", tip: "Bouge vertèbre par vertèbre. Très lent." },
+                        { name: "Dead Hang (Passif)", time: "3 x 45s", tip: "Suspension barre. Laisse le poids du corps tirer le dos." },
+                        { name: "Enfant (Child Pose)", time: "2 min", tip: "Fesses sur talons. Respire dans les côtes." }
+                    ],
+                    'p1_mercredi': [
+                        { name: "Elephant Walk", time: "2 min", tip: "Mains au sol, plie une jambe, tends l'autre." },
+                        { name: "Jefferson Curl (Léger)", time: "5 reps x 1 min", tip: "Enroule le dos vertèbre par vertèbre avec un petit poids." },
+                        { name: "Down Dog (Statique)", time: "2 min", tip: "Pousse fort dans les mains. Talons vers le sol." },
+                        { name: "Ischios Sangle", time: "2 min / côté", tip: "Dos au sol. Jambe en l'air avec sangle/ceinture." },
+                        { name: "Good Morning Stretch", time: "15 reps", tip: "Mains tête, pousse les fesses en arrière. Dos plat." },
+                        { name: "Seated Forward Fold", time: "3 min", tip: "Assis, jambes tendues. Cale-toi avec des coussins. Relâche." },
+                        { name: "Nerve Flossing", time: "1 min / côté", tip: "Assis, tends la jambe et relève la tête (et inversement)." }
+                    ],
+                    'p1_jeudi': [
+                        { name: "Neck Circles (Slow)", time: "1 min", tip: "Rotation lente du cou. 30s par sens." },
+                        { name: "Scapula Retractions", time: "1 min", tip: "Bras le long du corps, serre les omoplates." },
+                        { name: "Doorway Pec Stretch", time: "2 min / côté", tip: "Bras 90° dans encadrement porte. Avance le corps." },
+                        { name: "Upper Trap Release", time: "2 min / côté", tip: "Oreille vers épaule. Main tire doucement la tête." },
+                        { name: "Levator Scapulae", time: "2 min / côté", tip: "Regarde ton aisselle. Tire la tête en diagonale." },
+                        { name: "Wall Angels", time: "2 min", tip: "Dos au mur. Glisse les bras vers le haut. Garde contact." },
+                        { name: "Chin Tucks", time: "1 min", tip: "Double menton. Recule la tête à l'horizontale." }
+                    ],
+                    'p1_vendredi': [
+                        { name: "Salutation Soleil A", time: "5 tours", tip: "Mouvements fluides. Synchronise avec le souffle." },
+                        { name: "World's Greatest Stretch", time: "5 reps / côté", tip: "Fente + Coude sol + Rotation ciel + Extension." },
+                        { name: "Lizard Pose", time: "2 min / côté", tip: "Fente large, mains ou coudes au sol." },
+                        { name: "Deep Squat Hold", time: "2 min", tip: "Accroupi complet. Dos droit. Tiens un poteau si besoin." },
+                        { name: "Cossack Squat", time: "10 reps alt", tip: "Descends sur une jambe, l'autre tendue." },
+                        { name: "Pigeon Pose", time: "2 min / côté", tip: "Fesse au sol. Buste en avant." },
+                        { name: "Happy Baby", time: "2 min", tip: "Dos au sol, attrape les pieds. Genoux vers le sol." }
+                    ],
+                    'p1_samedi': [
+                        { name: "Respiration 4-7-8", time: "3 min", tip: "Calme mental avant le deep stretch." },
+                        { name: "Grand Écart Facial (Mur)", time: "5 min", tip: "Fesses contre le mur, jambes ouvertes max. Lis un livre." },
+                        { name: "Dragon Pose (Yin)", time: "4 min / côté", tip: "Fente très longue. Laisse le bassin fondre. Immobile." },
+                        { name: "Pancake (Bolster)", time: "5 min", tip: "Assis jambes écartées. Buste sur un gros coussin. Dors." },
+                        { name: "Lacet (Shoelace)", time: "3 min / côté", tip: "Jambes croisées l'une sur l'autre. Buste en avant." },
+                        { name: "Windshield Wipers", time: "2 min", tip: "Genoux essuie-glace au sol. Décompresse lombaires." },
+                        { name: "Savasana", time: "5 min", tip: "Intégration totale. Ne bouge plus." }
+                    ],
+                    'p1_dimanche': [
+                        { name: "Foam Roll Quadriceps", time: "3 min", tip: "Cherche les points douloureux." },
+                        { name: "Foam Roll Mollets", time: "3 min", tip: "Insiste sur les nœuds." },
+                        { name: "Foam Roll Thoracique", time: "3 min", tip: "Bras croisés. Roule le haut du dos." },
+                        { name: "Balle Lacrosse Fessiers", time: "2 min / côté", tip: "Appuie fort sur le piriforme." },
+                        { name: "Balle Pieds (Voute)", time: "2 min / côté", tip: "Écrase la balle avec le pied." },
+                        { name: "Scan Corporel", time: "5 min", tip: "Relâche chaque tension restante." }
+                    ],
+                    // PHASE 2 & 3: Tu peux ajouter ici avec la même logique si besoin d'extension future...
+                },
+
+                init() {
+                    lucide.createIcons();
+                    this.loadData();
+                    this.findToday();
+                    this.$nextTick(() => lucide.createIcons());
+                },
+
+                // HELPERS & LOGIC
+                getPhaseKey(w) { if (w <= 4) return 'p1'; if (w <= 8) return 'p2'; return 'p3'; },
+                getTodayKey(day) { return day.toLowerCase(); },
+                getPhaseInfo(week) { if (week <= 4) return this.phasesDb[1]; if (week <= 8) return this.phasesDb[2]; return this.phasesDb[3]; },
+                getPhaseName(week) { return this.getPhaseInfo(week).title.split(':')[0]; },
+                get currentPhaseName() { return this.getPhaseName(this.currentWeek); },
+                
+                openScience(item) { this.activeScienceItem = item; },
+                loadData() { const d = JSON.parse(localStorage.getItem('flex_v5_final')); if(d) { this.currentWeek = d.currentWeek || 1; this.streak = d.streak || 0; this.completed = d.completed || []; } this.viewWeek = this.currentWeek; this.updateRank(); },
+                save() { localStorage.setItem('flex_v5_final', JSON.stringify({ currentWeek: this.currentWeek, streak: this.streak, completed: this.completed })); },
+                updateRank() { if (this.streak < 10) this.user.flexRank = "RAIDE"; else if (this.streak < 40) this.user.flexRank = "SOUPLE"; else this.user.flexRank = "ÉLASTIQUE"; },
+                
+                getSessionData(week, day) {
+                    const phaseKey = this.getPhaseKey(week);
+                    const dayKey = this.getTodayKey(day);
+                    const dbKey = `${phaseKey}_${dayKey}`;
+                    const exercises = this.exercisesDb[dbKey] || this.exercisesDb['p1_'+dayKey]; // Fallback P1
+
+                    const metas = {
+                        'Lundi': { title: "HANCHES 3D", focus: "Psoas & Flexion", intensity: "5", desc: "Ouverture massive de l'avant des hanches pour contrer la position assise." },
+                        'Mardi': { title: "COLONNE LIBRE", focus: "Thoracique", intensity: "4", desc: "Mobilisation de la partie mobile du dos pour soulager la partie fixe." },
+                        'Mercredi': { title: "CHAÎNE ARRIÈRE", focus: "Ischios & Mollets", intensity: "7", desc: "Le secret pour toucher ses pieds : des ischios longs et forts." },
+                        'Jeudi': { title: "CARROSSERIE", focus: "Épaules & Cou", intensity: "4", desc: "Correction posturale complète. Ouverture poitrine et nuque." },
+                        'Vendredi': { title: "FLOW HYBRIDE", focus: "Corps Entier", intensity: "6", desc: "Mouvements connectés. On passe du sol à debout." },
+                        'Samedi': { title: "GRAND ÉCART", focus: "Adducteurs (Yin)", intensity: "8", desc: "Séance longue. On reste 3-5 min par pose pour changer le tissu profond." },
+                        'Dimanche': { title: "RECOVERY", focus: "Système Nerveux", intensity: "1", desc: "Massage et respiration. Préparation pour la semaine suivante." }
+                    };
+
+                    let meta = metas[day];
+                    if (week > 4) { meta.intensity++; }
+
+                    return { 
+                        id: `flex_w${week}_${day}`, week, day, 
+                        done: this.completed.includes(`flex_w${week}_${day}`),
+                        exercises, ...meta 
+                    };
+                },
+
+                calculateTotalDuration(session) {
+                    let total = 0;
+                    if(!session.exercises) return 0;
+                    session.exercises.forEach(ex => {
+                        if(ex.time.includes('min')) total += parseInt(ex.time) * (ex.time.includes('/') ? 2 : 1); // Compte double si "par côté"
+                        else total += 2; // Approx pour reps
+                    });
+                    return total;
+                },
+
+                getWeekSessions(w) { const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']; return days.map(d => this.getSessionData(w, d)); },
+                findToday() { const days = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi']; const todayName = days[new Date().getDay()]; this.todaySession = this.getSessionData(this.currentWeek, todayName); },
+                toggleSession(id) { if (this.completed.includes(id)) { this.completed = this.completed.filter(x => x !== id); this.streak = Math.max(0, this.streak - 1); this.todaySession.done = false; } else { this.completed.push(id); this.streak++; this.todaySession.done = true; confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#a855f7', '#f472b6'] }); } this.save(); this.updateRank(); },
+                changeWeek(d) { let n = this.viewWeek + d; if(n >= 1 && n <= 12) this.viewWeek = n; },
+                resetData() { if(confirm("RESET TOTAL ?")) { localStorage.removeItem('flex_v5_final'); location.reload(); } },
+                toggleSecret() { confetti({ particleCount: 150, spread: 70, origin: { y: 0.1 }, colors: ['#22d3ee', '#a855f7'] }); },
+                openRoutine(session) { this.activeRoutine = session; },
+                isDone(id) { return this.completed.includes(id); }
+            }
+        }
+    </script>
+</body>
+</html>
